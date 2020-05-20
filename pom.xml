@@ -66,9 +66,15 @@
                 <version>${azure.functions.java.library.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-storage</artifactId>
-                <version>8.6.4</version>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-storage-blob</artifactId>
+                <version>12.6.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>1.7.30</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -80,8 +86,13 @@
         </dependency>
 
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-storage</artifactId>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-storage-blob</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
         </dependency>
 
         <!-- Test -->

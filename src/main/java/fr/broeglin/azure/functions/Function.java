@@ -9,8 +9,8 @@ import java.util.*;
 import com.microsoft.azure.functions.annotation.*;
 import com.microsoft.azure.functions.*;
 
-import com.microsoft.azure.storage.*;
-import com.microsoft.azure.storage.blob.*;
+import com.azure.storage.blob.*;
+import com.azure.storage.blob.models.BlobItem;
 
 /**
  * Azure Functions with HTTP Trigger.
@@ -18,10 +18,6 @@ import com.microsoft.azure.storage.blob.*;
 public class Function {
 
     public static final String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=e4bbe6fe3e15421a9d5f;AccountKey=xnwX66Vc5oPozZuL1+skX4JYJEd09Rgokchw+hOLka1qwAQcxMdCusS41unJ9V2k8yG3e0VJL9InHw4ox8jklA==;EndpointSuffix=core.windows.net";
-
-    CloudStorageAccount storageAccount;
-    CloudBlobClient blobClient = null;
-    CloudBlobContainer container = null;
 
     /**
      * This function listens at endpoint "/api/HttpExample". Two ways to invoke it using "curl" command in bash:
@@ -39,34 +35,36 @@ public class Function {
         String name = request.getBody().orElse(query);
 
         try {
-            File sourceFile = null, downloadedFile = null;
+            File sourceFile = null;
 
-            storageAccount = CloudStorageAccount.parse(storageConnectionString);
-            blobClient = storageAccount.createCloudBlobClient();
-            container = blobClient.getContainerReference("quickstartcontainer");
 
-            // Create the container if it does not exist with public access.
-            System.out.println("Creating container: " + container.getName());
-            container.createIfNotExists(BlobContainerPublicAccessType.CONTAINER, new BlobRequestOptions(), new OperationContext());		    
+            BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
+                .connectionString(storageConnectionString)
+                .buildClient();
 
-        			//Creating a sample file
+            BlobContainerClient blobContainerClient = blobServiceClient.getBlobContainerClient("quickstartcontainer");
+            if(!blobContainerClient.exists()) {
+                blobContainerClient.create();
+            }
+
+
 			sourceFile = File.createTempFile("sampleFile", ".txt");
 			System.out.println("Creating a sample file at: " + sourceFile.toString());
 			Writer output = new BufferedWriter(new FileWriter(sourceFile));
 			output.write("Hello Azure!");
 			output.close();
 
-			//Getting a blob reference
-			CloudBlockBlob blob = container.getBlockBlobReference(sourceFile.getName());
+            BlobClient blockBlobClient = blobContainerClient.getBlobClient(sourceFile.getName());
 
 			//Creating blob and uploading file to it
 			System.out.println("Uploading the sample file ");
-			blob.uploadFromFile(sourceFile.getAbsolutePath());
+            blockBlobClient.uploadFromFile(sourceFile.getAbsolutePath());
 
 			//Listing contents of container
-			for (ListBlobItem blobItem : container.listBlobs()) {
-                System.out.println("URI of blob is: " + blobItem.getUri());
+            for (BlobItem blobItem : blobContainerClient.listBlobs()) {
+                System.out.println("Found blob name: " + blobItem.getName());
             }
+            
         } catch (Exception e) {
             System.out.println("Storage exception occured: " + e.getMessage());
         }
